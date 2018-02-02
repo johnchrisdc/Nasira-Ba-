@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -59,7 +60,8 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.lenny)
     TextView lenny;
 
-    private LinkedHashMap<String, List<Broken>> brokenHashMap = new LinkedHashMap<>();
+    @BindView(R.id.train_availability_container)
+    LinearLayout train_availability_container;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -221,7 +223,11 @@ public class MainActivity extends AppCompatActivity {
             }
 
             materialProgressBar.setVisibility(View.GONE);
+
+            train_availability_container.setVisibility(View.VISIBLE);
         }
+
+    }
 
     @Override
     public void onBackPressed() {
@@ -238,4 +244,5 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .show();
     }
+
 }

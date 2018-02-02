@@ -3,8 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="xyz.jcdc.nasiraba.MainActivity">
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/action_info"
+        android:icon="@drawable/ic_info_outline_white_24dp"
         android:orderInCategory="100"
         android:title="@string/action_settings"
-        app:showAsAction="never" />
+        app:showAsAction="always" />
 </menu>

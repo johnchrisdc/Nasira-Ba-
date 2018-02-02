@@ -3,6 +3,7 @@ package xyz.jcdc.nasiraba;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -12,16 +13,24 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
+import xyz.jcdc.nasiraba.mowdel.Broken;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,6 +55,11 @@ public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.train_availability)
     TextView train_availability;
+
+    @BindView(R.id.lenny)
+    TextView lenny;
+
+    private LinkedHashMap<String, List<Broken>> brokenHashMap = new LinkedHashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,13 +104,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_info) {
+            Toast.makeText(context, "Hello World!", Toast.LENGTH_SHORT).show();
             return true;
         }
 
@@ -127,31 +138,52 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Document document) {
             super.onPostExecute(document);
+
+            materialProgressBar.setVisibility(View.GONE);
+
+            if (document == null) {
+                lenny.setVisibility(View.VISIBLE);
+                sub_status.setText("Something went wrong, maybe yer internet connection");
+                return;
+            }
+
             Log.d(TAG, "onCreate: " + document.title());
 
             Elements news_main_item = document.getElementsByAttributeValueContaining("class", "news-main-item");
 
             if (news_main_item.first() != null) {
                 String p_text = news_main_item.first().getElementsByClass("news-main-title").text();
-                if (p_text.equalsIgnoreCase(Helpah.getCurrentDateString())) {
+                String date_string = Helpah.getCurrentDateString();
+
+                Log.d(TAG, "onPostExecute: " + date_string);
+
+                if (p_text.equalsIgnoreCase(date_string)) {
                     status.setText("OO");
+
+                    Element table = news_main_item.first().select("table").get(0); //select the first table.
+                    Elements rows = table.select("tr");
+
+                    Broken broken = new Broken();
+
+                    Element row = rows.get(1);
+                    Elements cols = row.select("td");
+
+                    broken.setTime(cols.get(0).text());
+                    broken.setDescription(cols.get(1).text());
+                    broken.setStatus(cols.get(2).text());
+                    broken.setStation(cols.get(3).text());
+                    broken.setBound(cols.get(4).text());
+
+                    sub_status.setText(broken.getStation() + ", " + broken.getBound() + " " + broken.getTime() + "\n" + broken.getDescription());
+
+                    lenny.setVisibility(View.VISIBLE);
                 } else {
-                    status.setText("DEHINDS PA!");
+                    status.setText("HINDI PA");
                     sub_status.setText("Last na nabroken </3 " + news_main_item.first().getElementsByClass("news-main-title").text());
+
+                    lenny.setVisibility(View.GONE);
                 }
             }
-
-            for (Element element : news_main_item) {
-                Log.d(TAG, "onPostExecute: " + element.getElementsByClass("news-main-title").text());
-
-                String p_text = element.getElementsByClass("news-main-title").text();
-                if (p_text.equalsIgnoreCase(Helpah.getCurrentDateString())) {
-                    Toast.makeText(context, "OO!", Toast.LENGTH_LONG).show();
-                }
-            }
-
-
-            materialProgressBar.setVisibility(View.GONE);
         }
     }
 
@@ -190,5 +222,20 @@ public class MainActivity extends AppCompatActivity {
 
             materialProgressBar.setVisibility(View.GONE);
         }
+
+    @Override
+    public void onBackPressed() {
+        new MaterialDialog.Builder(context)
+                .title("Exit")
+                .content("Are you sure you want to exit?")
+                .negativeText("Dismiss")
+                .positiveText("Yes")
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        finish();
+                    }
+                })
+                .show();
     }
 }

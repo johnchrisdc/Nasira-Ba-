@@ -34,4 +34,6 @@ dependencies {
     compile 'me.zhanghai.android.materialprogressbar:library:1.4.2'
     compile 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+
+    implementation 'com.afollestad.material-dialogs:core:0.9.6.0'
 }

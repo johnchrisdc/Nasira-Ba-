@@ -34,11 +34,12 @@ import xyz.jcdc.nasiraba.mowdel.Broken;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final  String TAG = "MainActivity";
+    private final String TAG = "MainActivity";
 
     private Context context;
 
     private FetchFetch fetchFetch;
+    private TrainAvailabilityTask trainAvailabilityTask;
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
@@ -51,6 +52,9 @@ public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.sub_status)
     TextView sub_status;
+
+    @BindView(R.id.train_availability)
+    TextView train_availability;
 
     @BindView(R.id.lenny)
     TextView lenny;
@@ -70,8 +74,15 @@ public class MainActivity extends AppCompatActivity {
         if (fetchFetch != null)
             fetchFetch.cancel(true);
 
+        if (trainAvailabilityTask != null)
+            trainAvailabilityTask.cancel(true);
+
+
         fetchFetch = new FetchFetch();
+        trainAvailabilityTask = new TrainAvailabilityTask();
+
         fetchFetch.execute();
+        trainAvailabilityTask.execute();
     }
 
     @Override
@@ -79,6 +90,9 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         if (fetchFetch != null)
             fetchFetch.cancel(true);
+
+        if (trainAvailabilityTask != null)
+            trainAvailabilityTask.cancel(true);
     }
 
     @Override
@@ -172,6 +186,42 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    private class TrainAvailabilityTask extends AsyncTask<Void, Void, Document> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            Log.d(TAG, "onPreExecute: " + "Fetching");
+            materialProgressBar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected Document doInBackground(Void... voids) {
+            try {
+                return Jsoup.connect(Variables.TRAIN_AVAILABILITY_URL).get();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Document document) {
+            super.onPostExecute(document);
+            Log.d(TAG, "onCreate: " + document.title());
+
+            Elements news_main_item = document.getElementsByAttributeValueContaining("class", "page-preview-content");
+
+            if (news_main_item.first() != null) {
+                Log.d(TAG, "by tag: " + news_main_item.first().getElementsByTag("p"));
+                String p_text = news_main_item.first().getElementsByTag("p").text();
+
+                train_availability.setText(p_text);
+            }
+
+            materialProgressBar.setVisibility(View.GONE);
+        }
 
     @Override
     public void onBackPressed() {
